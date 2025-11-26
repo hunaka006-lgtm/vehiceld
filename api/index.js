@@ -22,8 +22,6 @@ export default async function handler(req, res) {
         if (req.method === 'GET') {
             const queryParams = Object.entries(req.query);
 
-            // Smart mapping: If 'vehicle_no' is missing but there is exactly one parameter, use it as vehicle_no
-            // Or if 'vehicle' or 'number' is present, map it to 'vehicle_no'
             if (req.query.vehicle_no) {
                 body.append('vehicle_no', req.query.vehicle_no);
             } else if (req.query.vehicle) {
@@ -31,12 +29,8 @@ export default async function handler(req, res) {
             } else if (req.query.number) {
                 body.append('vehicle_no', req.query.number);
             } else if (queryParams.length === 1) {
-                // Fallback: if only one param is passed (e.g. ?MH01AB1234=), use its key or value
-                // But usually it's ?param=value. Let's just take the first value if it looks like a vehicle number?
-                // Safer: just take the first parameter's value and assign to vehicle_no
                 body.append('vehicle_no', queryParams[0][1]);
             } else {
-                // Pass all params as is (fallback)
                 for (const [key, value] of queryParams) {
                     body.append(key, value);
                 }
@@ -51,8 +45,6 @@ export default async function handler(req, res) {
         }
         // Handle POST requests
         else if (req.method === 'POST') {
-            // ... (existing POST logic, but ensure vehicle_no is prioritized if needed)
-            // For now, let's assume POST users know what they are doing, but we can also map 'vehicle' to 'vehicle_no'
             let incomingData = {};
 
             if (req.body && typeof req.body === 'object') {
@@ -78,11 +70,12 @@ export default async function handler(req, res) {
         const response = await fetch(targetUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 'User-Agent': 'okhttp/5.1.0',
-                'Accept-Encoding': 'gzip'
+                'Accept-Encoding': 'gzip',
+                'Connection': 'Keep-Alive'
             },
-            body: body.toString() // Explicitly convert to string
+            body: body.toString()
         });
 
         // Get the response text
@@ -93,7 +86,6 @@ export default async function handler(req, res) {
             const jsonData = JSON.parse(responseText);
             res.status(response.status).json(jsonData);
         } catch (e) {
-            // If response is not JSON, return it wrapped in a JSON object
             res.status(response.status).json({
                 message: "Upstream response was not JSON",
                 raw_response: responseText
