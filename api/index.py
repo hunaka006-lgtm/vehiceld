@@ -1,50 +1,54 @@
-from flask import Flask, request, jsonify
+from http.server import BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
 import requests
+import json
 
-app = Flask(__name__)
-
-@app.route('/api', methods=['GET', 'POST', 'OPTIONS'])
-@app.route('/api/index', methods=['GET', 'POST', 'OPTIONS'])
-def handler():
-    # CORS headers
-    headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-    }
-    
-    # Handle OPTIONS request
-    if request.method == 'OPTIONS':
-        return ('', 200, headers)
-    
-    try:
-        # Get vehicle number from query parameters
-        vehicle_no = request.args.get('vehicle_no') or request.args.get('vehicle') or 'DL01AB1234'
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
         
-        # Prepare the data for POST request
-        data = {'vehicle_no': vehicle_no}
-        
-        # Make POST request to the target API
-        response = requests.post(
-            'https://gtplay.in/API/vehicle_challan_info/testapi.php',
-            data=data,
-            headers={
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'User-Agent': 'okhttp/5.1.0',
-            }
-        )
-        
-        # Try to parse JSON response
         try:
-            result = response.json()
-        except:
-            result = {'raw': response.text}
-        
-        return (jsonify(result), 200, headers)
-        
-    except Exception as e:
-        return (jsonify({'error': str(e)}), 500, headers)
-
-# For local testing
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+            # Parse query parameters
+            parsed_path = urlparse(self.path)
+            query_params = parse_qs(parsed_path.query)
+            
+            # Get vehicle number from query
+            vehicle_no = query_params.get('vehicle_no', ['DL01AB1234'])[0]
+            if not vehicle_no:
+                vehicle_no = query_params.get('vehicle', ['DL01AB1234'])[0]
+            
+            # Make POST request to target API
+            response = requests.post(
+                'https://gtplay.in/API/vehicle_challan_info/testapi.php',
+                data={'vehicle_no': vehicle_no},
+                headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'okhttp/5.1.0',
+                }
+            )
+            
+            # Try to parse JSON response
+            try:
+                result = response.json()
+            except:
+                result = {'raw': response.text}
+            
+            self.wfile.write(json.dumps(result).encode())
+            
+        except Exception as e:
+            error_response = {'error': str(e)}
+            self.wfile.write(json.dumps(error_response).encode())
+    
+    def do_POST(self):
+        # Same as GET
+        self.do_GET()
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
