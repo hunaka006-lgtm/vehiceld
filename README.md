@@ -1,10 +1,27 @@
-# Vehicle Challan Info Proxy
+# Vehicle Challan Info Proxy (Python)
 
-This is a Vercel Serverless Function that acts as a proxy for the Vehicle Challan Info API.
+This is a Vercel Serverless Function (Python/Flask) that acts as a proxy for the Vehicle Challan Info API.
 
 ## How to Deploy
 
-1. **Install Vercel CLI** (if not already installed):
+### Option 1: Deploy via Vercel Dashboard (EASIEST - No CLI needed!)
+
+1. **Create a GitHub Account** (if you don't have one):
+   - Go to [github.com](https://github.com) and sign up
+
+2. **Create a new repository**:
+   - Upload all files from this folder to GitHub
+
+3. **Deploy to Vercel**:
+   - Go to [vercel.com](https://vercel.com) and sign up (use GitHub to login)
+   - Click "Import Project"
+   - Select your GitHub repository
+   - Click "Deploy"
+   - Done! 🎉
+
+### Option 2: Deploy via Vercel CLI
+
+1. **Install Vercel CLI**:
    ```bash
    npm i -g vercel
    ```
@@ -15,29 +32,31 @@ This is a Vercel Serverless Function that acts as a proxy for the Vehicle Challa
    ```
 
 3. **Deploy**:
-   Run the following command in this directory:
-   ```bash
-   vercel
-   ```
-   Follow the prompts to set up the project.
-
-4. **Production Deployment**:
    ```bash
    vercel --prod
    ```
 
 ## Usage
 
-Once deployed, you can send POST requests to your Vercel URL:
+Once deployed, access your API:
 
+### Example 1: Using query parameter
 ```
-POST https://your-project-name.vercel.app/api
-Content-Type: application/json
-
-{
-  "param1": "value1",
-  "param2": "value2"
-}
+GET https://your-project-name.vercel.app/api?vehicle_no=DL01AB1234
 ```
 
-The script will forward the parameters as `application/x-www-form-urlencoded` to `https://gtplay.in/API/vehicle_challan_info/testapi.php` and return the JSON response.
+### Example 2: Using POST
+```
+POST https://your-project-name.vercel.app/api?vehicle_no=DL01AB1234
+```
+
+## Local Testing (Optional)
+
+If you have Python installed:
+
+```bash
+pip install -r requirements.txt
+python api/index.py
+```
+
+Then visit: `http://localhost:5000/api?vehicle_no=DL01AB1234`
