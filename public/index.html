@@ -1,27 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Challan Proxy</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.5; }
-        h1 { color: #333; }
-        .card { background: #f4f4f4; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; }
-        code { background: #e0e0e0; padding: 0.2rem 0.4rem; border-radius: 4px; }
-        input, button { padding: 0.5rem; font-size: 1rem; margin-top: 0.5rem; }
-        pre { background: #2d2d2d; color: #fff; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .card {
+            background: #f4f4f4;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        code {
+            background: #e0e0e0;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        input,
+        button {
+            padding: 0.5rem;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
     </style>
 </head>
+
 <body>
     <h1>Vehicle Challan Proxy API</h1>
     <p>Your API is up and running!</p>
-    
+
     <div class="card">
         <h2>Test the API</h2>
         <p>Enter a vehicle number (or any parameter) to test:</p>
         <form id="testForm">
-            <input type="text" id="paramName" placeholder="Parameter Name (e.g. vehicle)" value="vehicle" required>
+            <input type="text" id="paramName" placeholder="Parameter Name (e.g. vehicle_no)" value="vehicle_no"
+                required>
             <input type="text" id="paramValue" placeholder="Value (e.g. MH01AB1234)" required>
             <button type="submit">Send Request</button>
         </form>
@@ -34,7 +70,7 @@
     <div class="card">
         <h2>Usage</h2>
         <p><strong>Endpoint:</strong> <code>/api</code></p>
-        <p><strong>GET Example:</strong> <a href="/api?vehicle=MH01AB1234">/api?vehicle=MH01AB1234</a></p>
+        <p><strong>GET Example:</strong> <a href="/api?vehicle_no=MH01AB1234">/api?vehicle_no=MH01AB1234</a></p>
     </div>
 
     <script>
@@ -58,4 +94,5 @@
         });
     </script>
 </body>
+
 </html>

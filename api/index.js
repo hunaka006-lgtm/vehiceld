@@ -18,50 +18,71 @@ export default async function handler(req, res) {
     try {
         let body = new URLSearchParams();
 
-        // Handle GET requests: use query parameters as the body
+        // Handle GET requests
         if (req.method === 'GET') {
-            // Example: /api?vehicle=MH01AB1234 -> body: vehicle=MH01AB1234
-            for (const [key, value] of Object.entries(req.query)) {
-                body.append(key, value);
+            const queryParams = Object.entries(req.query);
+
+            // Smart mapping: If 'vehicle_no' is missing but there is exactly one parameter, use it as vehicle_no
+            // Or if 'vehicle' or 'number' is present, map it to 'vehicle_no'
+            if (req.query.vehicle_no) {
+                body.append('vehicle_no', req.query.vehicle_no);
+            } else if (req.query.vehicle) {
+                body.append('vehicle_no', req.query.vehicle);
+            } else if (req.query.number) {
+                body.append('vehicle_no', req.query.number);
+            } else if (queryParams.length === 1) {
+                // Fallback: if only one param is passed (e.g. ?MH01AB1234=), use its key or value
+                // But usually it's ?param=value. Let's just take the first value if it looks like a vehicle number?
+                // Safer: just take the first parameter's value and assign to vehicle_no
+                body.append('vehicle_no', queryParams[0][1]);
+            } else {
+                // Pass all params as is (fallback)
+                for (const [key, value] of queryParams) {
+                    body.append(key, value);
+                }
             }
 
-            // If no parameters provided in GET, return an error or instructions
             if ([...body.keys()].length === 0) {
                 return res.status(400).json({
                     error: 'Missing parameters',
-                    message: 'Please provide the vehicle number parameter. Example: /api?vehicle=MH01AB1234'
+                    message: 'Please provide the vehicle_no parameter. Example: /api?vehicle_no=MH01AB1234'
                 });
             }
         }
         // Handle POST requests
         else if (req.method === 'POST') {
+            // ... (existing POST logic, but ensure vehicle_no is prioritized if needed)
+            // For now, let's assume POST users know what they are doing, but we can also map 'vehicle' to 'vehicle_no'
+            let incomingData = {};
+
             if (req.body && typeof req.body === 'object') {
-                for (const [key, value] of Object.entries(req.body)) {
-                    body.append(key, value);
-                }
+                incomingData = req.body;
             } else if (typeof req.body === 'string') {
-                // If body is already a string (e.g. raw body), try to parse it or use as is
-                try {
-                    const jsonBody = JSON.parse(req.body);
-                    for (const [key, value] of Object.entries(jsonBody)) {
-                        body.append(key, value);
-                    }
-                } catch {
-                    // Treat as pre-encoded string
-                    body = new URLSearchParams(req.body);
+                try { incomingData = JSON.parse(req.body); }
+                catch {
+                    const parsed = new URLSearchParams(req.body);
+                    for (const [k, v] of parsed) incomingData[k] = v;
+                }
+            }
+
+            if (incomingData.vehicle_no) body.append('vehicle_no', incomingData.vehicle_no);
+            else if (incomingData.vehicle) body.append('vehicle_no', incomingData.vehicle);
+            else {
+                for (const [key, value] of Object.entries(incomingData)) {
+                    body.append(key, value);
                 }
             }
         }
 
         // Forward the request to the target API
         const response = await fetch(targetUrl, {
-            method: 'POST', // The target always expects POST
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'User-Agent': 'okhttp/5.1.0',
                 'Accept-Encoding': 'gzip'
             },
-            body: body
+            body: body.toString() // Explicitly convert to string
         });
 
         // Get the response text
