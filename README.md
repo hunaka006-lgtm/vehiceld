@@ -1,33 +1,6 @@
 # Vehicle Challan Info Proxy (Python)
 
-This is a Vercel Serverless Function (Python) with API Key authentication that acts as a proxy for the Vehicle Challan Info API.
-
-## 🔐 API Key Setup
-
-### Step 1: Set API Key in Vercel
-
-1. Go to your Vercel project: [vehiceld.vercel.app](https://vercel.com/dashboard)
-2. Click on **Settings** → **Environment Variables**
-3. Add new variable:
-   - **Name:** `API_KEY`
-   - **Value:** `your-secret-key-here` (अपनी secret key डालो)
-4. Click **Save**
-5. Go to **Deployments** tab and **Redeploy** the latest deployment
-
-### Step 2: Generate a Strong API Key
-
-You can use any random string, for example:
-```
-sk_live_abc123xyz789
-```
-
-Or generate one using Python:
-```python
-import secrets
-print(secrets.token_urlsafe(32))
-```
-
----
+This is a Vercel Serverless Function (Python) that acts as a proxy for the Vehicle Challan Info API.
 
 ## 🚀 Deployment
 
@@ -44,9 +17,6 @@ print(secrets.token_urlsafe(32))
    - Click "Import Project"
    - Select your GitHub repository
    - Click "Deploy"
-   - **Before deploying, add Environment Variable:**
-     - Name: `API_KEY`
-     - Value: your secret key
    - Done! 🎉
 
 ### Option 2: Deploy via Vercel CLI
@@ -61,58 +31,68 @@ print(secrets.token_urlsafe(32))
    vercel login
    ```
 
-3. **Set Environment Variable**:
-   ```bash
-   vercel env add API_KEY
-   ```
-
-4. **Deploy**:
+3. **Deploy**:
    ```bash
    vercel --prod
    ```
 
 ---
 
-## 📖 Usage
+## 📖 API Usage
 
-### Method 1: Using Query Parameter (Recommended)
+### Method 1: GET Request
 ```
-GET https://vehiceld.vercel.app/api?key=your-secret-key-here&vehicle_no=DL01AB1234
+https://vehiceld.vercel.app/api?vehicle_no=DL01AB1234
 ```
 
-### Method 2: Using Header
+### Method 2: Using cURL
 ```bash
-curl -H "X-API-Key: your-secret-key-here" \
-  "https://vehiceld.vercel.app/api?vehicle_no=DL01AB1234"
+curl "https://vehiceld.vercel.app/api?vehicle_no=DL01AB1234"
 ```
 
-### Example Response (Success):
-```json
-{
-  "status": true,
-  "data": {
-    "vehicle_no": "DL01AB1234",
-    "challan_info": [...]
-  }
-}
-```
+### Method 3: In Telegram Bot
+```python
+import requests
 
-### Example Response (Invalid Key):
-```json
-{
-  "status": false,
-  "error": "Invalid or missing API key"
-}
+vehicle_no = "DL01AB1234"
+url = f"https://vehiceld.vercel.app/api?vehicle_no={vehicle_no}"
+response = requests.get(url)
+data = response.json()
+print(data)
 ```
 
 ---
 
-## 🔒 Security Notes
+## 📝 Example Responses
 
-- **Never share your API key publicly**
-- Store the key in Vercel Environment Variables (not in code)
-- Use HTTPS only
-- Rotate your key periodically
+### Success Response:
+```json
+{
+  "status": true,
+  "data": {
+    "registration_no": "DL01AB1234",
+    "owner_name": "John Doe",
+    "vehicle_class": "Motor Car",
+    ...
+  }
+}
+```
+
+### Error Response:
+```json
+{
+  "status": false,
+  "error": "RC Data not found, please check vehicle number."
+}
+```
+
+### Missing Parameter:
+```json
+{
+  "status": false,
+  "error": "Missing vehicle_no parameter"
+}
+```
 
 ---
 
@@ -120,26 +100,50 @@ curl -H "X-API-Key: your-secret-key-here" \
 
 If you have Python installed:
 
-1. **Set environment variable:**
-   ```bash
-   # Windows (PowerShell)
-   $env:API_KEY = "your-secret-key-here"
-   
-   # Linux/Mac
-   export API_KEY="your-secret-key-here"
-   ```
-
-2. **Install dependencies:**
+1. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Run locally:**
+2. **Run locally:**
    ```bash
    python api/index.py
    ```
 
-4. **Test:**
+3. **Test:**
    ```
-   http://localhost:5000/api?key=your-secret-key-here&vehicle_no=DL01AB1234
+   http://localhost:5000/api?vehicle_no=DL01AB1234
    ```
+
+---
+
+## 🔗 Live API URL
+
+Once deployed, your API will be available at:
+```
+https://vehiceld.vercel.app/api?vehicle_no=YOUR_VEHICLE_NUMBER
+```
+
+---
+
+## 📱 Telegram Bot Integration
+
+Use this URL in your Telegram bot:
+```
+https://vehiceld.vercel.app/api?vehicle_no={user_input}
+```
+
+Example:
+```python
+vehicle_number = update.message.text
+api_url = f"https://vehiceld.vercel.app/api?vehicle_no={vehicle_number}"
+response = requests.get(api_url)
+data = response.json()
+
+if data.get('status'):
+    # Send vehicle data to user
+    bot.send_message(chat_id, f"Vehicle Info: {data['data']}")
+else:
+    # Send error message
+    bot.send_message(chat_id, f"Error: {data.get('error')}")
+```

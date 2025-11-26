@@ -2,10 +2,6 @@ from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import requests
 import json
-import os
-
-# API Key from environment variable
-API_KEY = os.environ.get('API_KEY', 'your-secret-key-here')
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -14,25 +10,19 @@ class handler(BaseHTTPRequestHandler):
             parsed_path = urlparse(self.path)
             query_params = parse_qs(parsed_path.query)
             
-            # Check API Key
-            provided_key = query_params.get('key', [''])[0]
-            if not provided_key:
-                # Also check in headers
-                provided_key = self.headers.get('X-API-Key', '')
+            # Get vehicle number from query
+            vehicle_no = query_params.get('vehicle_no', [''])[0]
+            if not vehicle_no:
+                vehicle_no = query_params.get('vehicle', [''])[0]
             
-            if provided_key != API_KEY:
-                self.send_response(401)
+            if not vehicle_no:
+                self.send_response(400)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                error = {'status': False, 'error': 'Invalid or missing API key'}
+                error = {'status': False, 'error': 'Missing vehicle_no parameter'}
                 self.wfile.write(json.dumps(error).encode())
                 return
-            
-            # Get vehicle number from query
-            vehicle_no = query_params.get('vehicle_no', ['DL01AB1234'])[0]
-            if not vehicle_no:
-                vehicle_no = query_params.get('vehicle', ['DL01AB1234'])[0]
             
             # Make POST request to target API
             response = requests.post(
@@ -61,7 +51,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            error_response = {'error': str(e)}
+            error_response = {'status': False, 'error': str(e)}
             self.wfile.write(json.dumps(error_response).encode())
     
     def do_POST(self):
@@ -72,5 +62,5 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-API-Key')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
