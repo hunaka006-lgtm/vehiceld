@@ -1,0 +1,13 @@
+{
+  "name": "vehicle-challan-proxy",
+  "version": "1.0.0",
+  "description": "Proxy API for vehicle challan info",
+  "main": "api/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}
